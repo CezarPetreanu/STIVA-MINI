@@ -31,7 +31,7 @@ public class DrawArea extends JComponent{
 		color = Color.black;
 		tool = tools.pencil;
 		currentLayer = 0;
-		numberOfLayers = 1;
+		numberOfLayers = 0;
 		layer.add(new Color[10][10]);
 		setDoubleBuffered(false);
 		addMouseListener(new MouseAdapter() {
@@ -113,13 +113,18 @@ public class DrawArea extends JComponent{
 		}
 	}
 	
-	private void screenUpdate() {
+	public void screenUpdate() {
 		for(int i=0; i<10; i++)
 			for(int j=0; j<10; j++) {
+				if((i+j)%2 == 0)
+					g2.setPaint(Color.lightGray);
+				else
+					g2.setPaint(Color.gray);
+				g2.fillRect(i*32, j*32, 32, 32);
 				if(layer.get(currentLayer)[i][j] != null) {
-					g2.setPaint(layer.get(0)[i][j]);
+					g2.setPaint(layer.get(currentLayer)[i][j]);
 					g2.fillRect(i*32, j*32, 32, 32);
-				}	
+				}
 			}
 		g2.setPaint(color);
 		repaint();
@@ -147,5 +152,39 @@ public class DrawArea extends JComponent{
 	
 	public void setTool(tools newTool) {
 		tool = newTool;
+	}
+	
+	public void addLayer() {
+		layer.add(currentLayer+1, new Color[10][10]);
+		currentLayer++;
+		numberOfLayers++;
+		screenUpdate();
+	}
+	
+	public void deleteLayer() {
+		if(numberOfLayers > 0) {
+			layer.remove(currentLayer);
+			currentLayer--;
+			numberOfLayers--;
+			screenUpdate();
+		}
+	}
+
+	public int getNumberOfLayers() {
+		return numberOfLayers;
+	}
+	public void nextLayer() {
+		if(currentLayer < numberOfLayers)
+			currentLayer++;
+		screenUpdate();
+	}
+	public void prevLayer() {
+		if(currentLayer > 0)
+			currentLayer--;
+		screenUpdate();
+	}
+
+	public int getCurrentLayer() {
+		return currentLayer;
 	}
 }

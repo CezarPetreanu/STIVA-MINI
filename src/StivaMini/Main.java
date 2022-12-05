@@ -53,6 +53,53 @@ public class Main {
 				buttonFill.setEnabled(true);
 				buttonEraser.setEnabled(false);
 			}
+			else if(e.getSource() == buttonLayerAdd) {
+				drawArea.addLayer();
+				if(drawArea.getNumberOfLayers() > 0)
+				{
+					buttonLayerDelete.setEnabled(true);
+					buttonLayerNext.setEnabled(true);
+					buttonLayerPrev.setEnabled(true);
+					if(drawArea.getCurrentLayer() == 0)
+						buttonLayerPrev.setEnabled(false);
+					if(drawArea.getCurrentLayer() == drawArea.getNumberOfLayers())
+						buttonLayerNext.setEnabled(false);
+					
+					System.out.println(drawArea.getCurrentLayer());
+				}
+			}
+			else if(e.getSource() == buttonLayerDelete) {
+				if(drawArea.getNumberOfLayers() > 0)	
+					drawArea.deleteLayer();
+				if(drawArea.getNumberOfLayers() == 0)
+					buttonLayerDelete.setEnabled(false);
+				if(drawArea.getCurrentLayer() == 0)
+					buttonLayerPrev.setEnabled(false);
+				if(drawArea.getCurrentLayer() == drawArea.getNumberOfLayers())
+					buttonLayerNext.setEnabled(false);
+
+				System.out.println(drawArea.getCurrentLayer());
+			}
+			else if(e.getSource() == buttonLayerNext) {
+				drawArea.nextLayer();
+				if(drawArea.getCurrentLayer() == drawArea.getNumberOfLayers())
+					buttonLayerNext.setEnabled(false);
+				else
+					buttonLayerNext.setEnabled(true);
+				buttonLayerPrev.setEnabled(true);
+
+				System.out.println(drawArea.getCurrentLayer());
+			}
+			else if(e.getSource() == buttonLayerPrev) {
+				drawArea.prevLayer();
+				if(drawArea.getCurrentLayer() == 0)
+					buttonLayerPrev.setEnabled(false);
+				else
+					buttonLayerPrev.setEnabled(true);
+				buttonLayerNext.setEnabled(true);
+
+				System.out.println(drawArea.getCurrentLayer());
+			}
 		}
 	};
 	
@@ -105,9 +152,16 @@ public class Main {
 		buttonLayerPrev = new JButton("Previous");
 		buttonLayerPrev.addActionListener(actionListener);
 		buttonLayerPrev.setEnabled(false);
+		buttonLayerAdd = new JButton("Add layer");
+		buttonLayerAdd.addActionListener(actionListener);
+		buttonLayerDelete = new JButton("Delete layer");
+		buttonLayerDelete.addActionListener(actionListener);
+		buttonLayerDelete.setEnabled(false);
 		
-		layerPanel.add(buttonLayerNext);
 		layerPanel.add(buttonLayerPrev);
+		layerPanel.add(buttonLayerNext);
+		layerPanel.add(buttonLayerAdd);
+		layerPanel.add(buttonLayerDelete);
 		
 		controlPanel.add(layerPanel, BorderLayout.SOUTH);
 		
