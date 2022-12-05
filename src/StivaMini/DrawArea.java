@@ -28,7 +28,19 @@ public class DrawArea extends JComponent{
 		setDoubleBuffered(false);
 		addMouseListener(new MouseAdapter() {
 			public void mousePressed(MouseEvent e) {
-				drawPixel(e);
+				if(tool == tools.fill) {
+					mouseX = e.getX();
+					mouseY = e.getY();
+					int pixelX = mouseX/32;
+					int pixelY = mouseY/32;
+					
+					if(layer[pixelX][pixelY] != color) {
+						fillColor(pixelX, pixelY, layer[pixelX][pixelY]);
+						screenUpdate();
+					}
+				}
+				else
+					drawPixel(e);
 			}
 		});
 		addMouseMotionListener(new MouseMotionAdapter() {
@@ -89,12 +101,6 @@ public class DrawArea extends JComponent{
 					g2.fillRect(pixelX*32, pixelY*32, 32, 32);
 				}
 			}
-			else if(this.tool == tools.fill) {
-				if(this.layer[pixelX][pixelY] != this.color) {
-					fillColor(pixelX, pixelY, this.layer[pixelX][pixelY]);
-					screenUpdate();
-				}
-			}
 			repaint();
 		}
 	}
@@ -121,8 +127,10 @@ public class DrawArea extends JComponent{
 	}
 
 	public void setColor(Color newColor) {
-		this.color = newColor;
-		g2.setPaint(color);
+		if(newColor != null) {
+			this.color = newColor;
+			g2.setPaint(color);
+		}
 	}
 	public Color getColor() {
 		return this.color;
