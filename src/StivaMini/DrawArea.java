@@ -164,7 +164,8 @@ public class DrawArea extends JComponent{
 	public void deleteLayer() {
 		if(numberOfLayers > 0) {
 			layer.remove(currentLayer);
-			currentLayer--;
+			if(currentLayer > 0)
+				currentLayer--;
 			numberOfLayers--;
 			screenUpdate();
 		}
