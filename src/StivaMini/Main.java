@@ -6,6 +6,7 @@ import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JColorChooser;
 import javax.swing.JFrame;
@@ -18,7 +19,10 @@ public class Main {
 	JButton buttonEraser;
 	JButton buttonClear;
 	JButton buttonColor;
-	JButton buttonTest;
+	JButton buttonLayerNext;
+	JButton buttonLayerPrev;
+	JButton buttonLayerAdd;
+	JButton buttonLayerDelete;
 	DrawArea drawArea;
 	
 	ActionListener actionListener = new ActionListener() {
@@ -70,6 +74,10 @@ public class Main {
 		content.add(filePanel, BorderLayout.NORTH);
 		
 		JPanel controlPanel = new JPanel();
+		controlPanel.setLayout(new BorderLayout());
+		
+		JPanel toolPanel = new JPanel();
+		toolPanel.setLayout(new BoxLayout(toolPanel, BoxLayout.X_AXIS));
 		buttonPencil = new JButton("Pencil");
 		buttonPencil.addActionListener(actionListener);
 		buttonPencil.setEnabled(false);
@@ -79,11 +87,30 @@ public class Main {
 		buttonEraser.addActionListener(actionListener);
 		buttonColor = new JButton("Colors");
 		buttonColor.addActionListener(actionListener);
+
 		
-		controlPanel.add(buttonPencil);
-		controlPanel.add(buttonFill);
-		controlPanel.add(buttonEraser);
-		controlPanel.add(buttonColor);
+		toolPanel.add(buttonPencil);
+		toolPanel.add(buttonFill);
+		toolPanel.add(buttonEraser);
+		toolPanel.add(buttonColor);
+		
+		controlPanel.add(toolPanel, BorderLayout.NORTH);
+		
+		
+		JPanel layerPanel = new JPanel();
+		layerPanel.setLayout(new BoxLayout(layerPanel, BoxLayout.X_AXIS));
+		buttonLayerNext = new JButton("Next");
+		buttonLayerNext.addActionListener(actionListener);
+		buttonLayerNext.setEnabled(false);
+		buttonLayerPrev = new JButton("Previous");
+		buttonLayerPrev.addActionListener(actionListener);
+		buttonLayerPrev.setEnabled(false);
+		
+		layerPanel.add(buttonLayerNext);
+		layerPanel.add(buttonLayerPrev);
+		
+		controlPanel.add(layerPanel, BorderLayout.SOUTH);
+		
 		content.add(controlPanel, BorderLayout.SOUTH);
 		
 		frame.setSize(400, 600);
