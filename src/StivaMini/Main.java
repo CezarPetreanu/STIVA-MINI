@@ -109,6 +109,7 @@ public class Main {
 	
 	public void show() {
 		JFrame frame = new JFrame("STIVA MINI");
+		frame.setResizable(false);
 		Container content = frame.getContentPane();
 		content.setLayout(new BorderLayout());
 		drawArea = new DrawArea();
