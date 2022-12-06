@@ -121,6 +121,12 @@ public class DrawArea extends JComponent{
 				else
 					g2.setPaint(Color.gray);
 				g2.fillRect(i*32, j*32, 32, 32);
+				if(currentLayer>0 && layer.get(currentLayer-1)[i][j] != null)
+				{
+					Color prevColor = layer.get(currentLayer-1)[i][j];
+					g2.setPaint(new Color(prevColor.getRed(), prevColor.getGreen(), prevColor.getBlue(), 100));
+					g2.fillRect(i*32, j*32, 32, 32);
+				}
 				if(layer.get(currentLayer)[i][j] != null) {
 					g2.setPaint(layer.get(currentLayer)[i][j]);
 					g2.fillRect(i*32, j*32, 32, 32);
