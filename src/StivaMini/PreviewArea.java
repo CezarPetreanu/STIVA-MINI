@@ -55,7 +55,7 @@ public class PreviewArea extends JComponent{
 			AffineTransform trans = new AffineTransform();
 			trans.setTransform(identity);
 			trans.scale(1, 1);
-			trans.translate(80, 80-i*8);
+			trans.translate(100, 160-i*8);
 			trans.rotate(Math.toRadians(30), imageLayer.getWidth(null)/2, imageLayer.getHeight(null)/2);
 			g2.drawImage(imageLayer, trans, null);
 			//g2.drawImage(imageLayer, 80, 80-i*4, null);
