@@ -205,7 +205,7 @@ public class DrawArea extends JComponent{
 	}
 
 	public void previewImage() {
-		imgPreview = new ImagePreview();
+		imgPreview = new ImagePreview(layer);
 		imgPreview.show();
 		
 	}
