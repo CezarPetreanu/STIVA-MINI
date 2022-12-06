@@ -44,24 +44,35 @@ public class PreviewArea extends JComponent{
 					g2.setPaint(Color.gray);
 				g2.fillRect(i*32, j*32, 32, 32);
 			}
-		Image layerImage = paintLayer();
-		repaint();
+		for(int i=0; i<numberOfLayers; i++) {
+			Image imageLayer = paintLayer(i);
+			
+			AffineTransform identity = new AffineTransform();
+			AffineTransform trans = new AffineTransform();
+			trans.setTransform(identity);
+			trans.rotate( Math.toRadians(30) );
+			
+			g2.drawImage(imageLayer, trans, null);
+			//g2.drawImage(imageLayer, 80, 80-i*4, null);
+		}
 	}
 	
-	public Image paintLayer() {
+	public Image paintLayer(int layerNumber) {
 		Image imageLayer;
 		Graphics2D g2Layer;
 		imageLayer = createImage(160, 160);
-		g2Layer = (Graphics2D) image.getGraphics();
+		g2Layer = (Graphics2D) imageLayer.getGraphics();
 		g2Layer.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
 
 		for(int i=0; i<10; i++)
 			for(int j=0; j<10; j++) {
-				if(layer.get(0)[i][j] != null) {
-					g2Layer.setPaint(layer.get(0)[i][j]);
-					g2Layer.fillRect(i*16, j*16, 16, 16);
-				}
+				if(layer.get(layerNumber)[i][j] != null)
+					g2Layer.setPaint(layer.get(layerNumber)[i][j]);
+				else
+					g2Layer.setPaint(new Color(0, 0, 0, 0));
+				g2Layer.fillRect(i*16, j*16, 16, 16);
 			}
+
 		
 		return imageLayer;
 	}
