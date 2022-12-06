@@ -23,6 +23,8 @@ public class DrawArea extends JComponent{
 	private int currentLayer;
 	private int numberOfLayers;
 	
+	private ImagePreview imgPreview;
+	
 	private tools tool;
 	
 	private List <Color[][]> layer = new ArrayList<>();
@@ -77,12 +79,7 @@ public class DrawArea extends JComponent{
 				else
 					g2.setPaint(Color.gray);
 				g2.fillRect(i*32, j*32, 32, 32);
-				if(currentLayer>0 && layer.get(currentLayer-1)[i][j] != null)
-				{
-					Color prevColor = layer.get(currentLayer-1)[i][j];
-					g2.setPaint(new Color(prevColor.getRed(), prevColor.getGreen(), prevColor.getBlue(), 100));
-					g2.fillRect(i*32, j*32, 32, 32);
-				}
+				drawOnionSkin(i, j, g2);
 				layer.get(currentLayer)[i][j] = null;
 			}
 				
@@ -90,6 +87,16 @@ public class DrawArea extends JComponent{
 		repaint();
 	}
 	
+	private void drawOnionSkin(int i, int j, Graphics2D g22) {
+		if(currentLayer>0 && layer.get(currentLayer-1)[i][j] != null)
+		{
+			Color prevColor = layer.get(currentLayer-1)[i][j];
+			g2.setPaint(new Color(prevColor.getRed(), prevColor.getGreen(), prevColor.getBlue(), 100));
+			g2.fillRect(i*32, j*32, 32, 32);
+		}
+		
+	}
+
 	private void drawPixel(MouseEvent e) {
 		mouseX = e.getX();
 		mouseY = e.getY();
@@ -113,12 +120,7 @@ public class DrawArea extends JComponent{
 					else
 						g2.setPaint(Color.gray);
 					g2.fillRect(pixelX*32, pixelY*32, 32, 32);
-					if(currentLayer>0 && layer.get(currentLayer-1)[pixelX][pixelY] != null)
-					{
-						Color prevColor = layer.get(currentLayer-1)[pixelX][pixelY];
-						g2.setPaint(new Color(prevColor.getRed(), prevColor.getGreen(), prevColor.getBlue(), 100));
-						g2.fillRect(pixelX*32, pixelY*32, 32, 32);
-					}
+					drawOnionSkin(pixelX, pixelY, g2);
 				}
 			}
 			repaint();
@@ -133,12 +135,7 @@ public class DrawArea extends JComponent{
 				else
 					g2.setPaint(Color.gray);
 				g2.fillRect(i*32, j*32, 32, 32);
-				if(currentLayer>0 && layer.get(currentLayer-1)[i][j] != null)
-				{
-					Color prevColor = layer.get(currentLayer-1)[i][j];
-					g2.setPaint(new Color(prevColor.getRed(), prevColor.getGreen(), prevColor.getBlue(), 100));
-					g2.fillRect(i*32, j*32, 32, 32);
-				}
+				drawOnionSkin(i, j, g2);
 				if(layer.get(currentLayer)[i][j] != null) {
 					g2.setPaint(layer.get(currentLayer)[i][j]);
 					g2.fillRect(i*32, j*32, 32, 32);
@@ -205,5 +202,11 @@ public class DrawArea extends JComponent{
 
 	public int getCurrentLayer() {
 		return currentLayer;
+	}
+
+	public void previewImage() {
+		imgPreview = new ImagePreview();
+		imgPreview.show();
+		
 	}
 }

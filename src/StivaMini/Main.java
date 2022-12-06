@@ -23,6 +23,7 @@ public class Main {
 	JButton buttonLayerPrev;
 	JButton buttonLayerAdd;
 	JButton buttonLayerDelete;
+	JButton buttonImagePreview;
 	DrawArea drawArea;
 	
 	ActionListener actionListener = new ActionListener() {
@@ -100,6 +101,9 @@ public class Main {
 
 				System.out.println(drawArea.getCurrentLayer());
 			}
+			else if(e.getSource() == buttonImagePreview) {
+				drawArea.previewImage();
+			}
 		}
 	};
 	
@@ -118,7 +122,10 @@ public class Main {
 		JPanel filePanel = new JPanel();
 		buttonClear = new JButton("New");
 		buttonClear.addActionListener(actionListener);
+		buttonImagePreview = new JButton("Preview");
+		buttonImagePreview.addActionListener(actionListener);
 		filePanel.add(buttonClear);
+		filePanel.add(buttonImagePreview);
 		content.add(filePanel, BorderLayout.NORTH);
 		
 		JPanel controlPanel = new JPanel();
