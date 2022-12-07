@@ -17,6 +17,8 @@ public class PreviewArea extends JComponent{
 	private Image image;
 	private Graphics2D g2;
 	private int numberOfLayers;
+	private int rot;
+	
 	
 	private List <Color[][]> layer = new ArrayList<>();
 	
@@ -48,6 +50,7 @@ public class PreviewArea extends JComponent{
 				g2.fillRect(i*32, j*32, 32, 32);
 			}
 		*/
+		g2.clearRect(0, 0, getWidth(), getHeight());
 		for(int i=0; i<numberOfLayers; i++) {
 			Image imageLayer = paintLayer(i);
 			
@@ -56,7 +59,7 @@ public class PreviewArea extends JComponent{
 			trans.setTransform(identity);
 			trans.scale(1, 1);
 			trans.translate(100, 160-i*8);
-			trans.rotate(Math.toRadians(30), imageLayer.getWidth(null)/2, imageLayer.getHeight(null)/2);
+			trans.rotate(Math.toRadians(rot), imageLayer.getWidth(null)/2, imageLayer.getHeight(null)/2);
 			g2.drawImage(imageLayer, trans, null);
 			//g2.drawImage(imageLayer, 80, 80-i*4, null);
 			repaint();
@@ -80,5 +83,19 @@ public class PreviewArea extends JComponent{
 
 		
 		return imageLayer;
+	}
+
+	public void rotateRight() {
+		rot += 5;
+		if(rot >= 360)
+			rot = rot%360;
+		clear();
+	}
+	
+	public void rotateLeft() {
+		rot -= 5;
+		if(rot < 0)
+			rot = 360+rot;
+		clear();
 	}
 }
