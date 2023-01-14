@@ -12,7 +12,7 @@ import javax.swing.JColorChooser;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-public class Main {
+public class Main{
 
 	JButton buttonPencil;
 	JButton buttonFill;
