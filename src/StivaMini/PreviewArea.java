@@ -67,7 +67,7 @@ public class PreviewArea extends JComponent{
 	}
 	
 	public BufferedImage paintLayer(int layerNumber) {
-		BufferedImage imageLayer = new BufferedImage(160, 160, BufferedImage.TYPE_INT_ARGB);;
+		BufferedImage imageLayer = new BufferedImage(160, 160, BufferedImage.TYPE_INT_ARGB);
 		Graphics2D g2Layer;
 		g2Layer = (Graphics2D) imageLayer.getGraphics();
 		g2Layer.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);

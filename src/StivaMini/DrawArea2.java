@@ -28,9 +28,13 @@ import java.awt.event.ActionEvent;
 import javax.swing.BoxLayout;
 import java.awt.Color;
 import java.awt.Panel;
+import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
+import java.awt.geom.AffineTransform;
+import java.awt.image.BufferedImage;
+
 import javax.swing.AbstractListModel;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
@@ -47,7 +51,8 @@ public class DrawArea2 extends JFrame {
 	private tools tool;
 	private List <Color[][]> layer = new ArrayList<>();
 	private JTable table;
-
+	private int previewAngle;
+	private int previewPixelSize;
 	/**
 	 * Launch the application.
 	 */
@@ -77,13 +82,18 @@ public class DrawArea2 extends JFrame {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 746, 617);
 		
-		MyCanvas canvas = new MyCanvas(16) {
+		
+		
+		// ---------------------- DRAW MODE ----------------------
+		
+		
+		MyCanvas canvas = new MyCanvas() {
 			public void paint(Graphics g)
             {
-				drawBackground(g);
+				canvasUpdate(this, this.getGraphics());
             }
 		};
-		layer.add(new Color[canvas.getCanvasSize()][canvas.getCanvasSize()]);
+		layer.add(new Color[canvas.getGridSize()][canvas.getGridSize()]);
 		
 		JMenuBar menuBar = new JMenuBar();
 		setJMenuBar(menuBar);
@@ -338,7 +348,7 @@ public class DrawArea2 extends JFrame {
 					int unit = canvas.getUnitSize();
 					int x = e.getX()/unit;
 					int y = e.getY()/unit;
-					if(x >= 0 && x < canvas.getCanvasSize() && y >= 0 && y < canvas.getCanvasSize() &&
+					if(x >= 0 && x < canvas.getGridSize() && y >= 0 && y < canvas.getGridSize() &&
 						tool == tools.fill && layer.get(currentLayer)[x][y] != color) {
 						fillColor(x, y, layer.get(currentLayer)[x][y]);
 						canvasUpdate(canvas, g);
@@ -347,38 +357,114 @@ public class DrawArea2 extends JFrame {
 			}
 		});
 		canvas.setBackground(new Color(255, 255, 255));
-		canvas.setBounds(10, 10, 480, 480);
+		canvas.setBounds(10, 10, canvas.getCanvasSize(), 480);
 		panel_8.add(canvas);
+
+		
+		
+		// ---------------------- PREVIEW MODE ----------------------
+		previewPixelSize = 12;
+		previewAngle = 0;
+		
 		
 		JPanel panelPreview = new JPanel();
 		tabbedPane.addTab("Preview", null, panelPreview, null);
 		panelPreview.setLayout(new BorderLayout(0, 0));
 		
-		JPanel panel = new JPanel();
-		panelPreview.add(panel, BorderLayout.SOUTH);
-		panel.setLayout(new BorderLayout(0, 0));
+		JPanel panelButtons = new JPanel();
+		panelPreview.add(panelButtons, BorderLayout.SOUTH);
+		panelButtons.setLayout(new BorderLayout(0, 0));
 		
 		JLabel lblPreviewMessage = new JLabel("...");
-		panel.add(lblPreviewMessage, BorderLayout.SOUTH);
+		panelButtons.add(lblPreviewMessage, BorderLayout.SOUTH);
 		
 		JPanel panel_1 = new JPanel();
-		panel.add(panel_1, BorderLayout.CENTER);
+		panelButtons.add(panel_1, BorderLayout.CENTER);
 		
 		JButton btnPreviewLeft = new JButton("\u2B9C");
 		panel_1.add(btnPreviewLeft);
 		
-		JButton btnPreviewPlay = new JButton("\u25b6");
-		panel_1.add(btnPreviewPlay);
-		
 		JButton btnPreviewRight = new JButton("\u2B9E");
 		panel_1.add(btnPreviewRight);
+		
+		JPanel panelCanvas = new JPanel();
+		panelPreview.add(panelCanvas, BorderLayout.CENTER);
+		panelCanvas.setLayout(new BoxLayout(panelCanvas, BoxLayout.X_AXIS));
+		
+		
+		Canvas canvasPreview = new Canvas() {
+			public void paint(Graphics g)
+            {
+				drawPreview(this);
+            }
+		};
+		panelCanvas.add(canvasPreview);
+		
+		btnPreviewRight.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				canvasPreview.getGraphics().clearRect(0, 0, getWidth(), getHeight());
+				previewAngle+=10;
+				drawPreview(canvasPreview);
+			}
+		});
+		btnPreviewLeft.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				canvasPreview.getGraphics().clearRect(0, 0, getWidth(), getHeight());
+				previewAngle-=10;
+				drawPreview(canvasPreview);
+			}
+		});
 	}
+	
+	public void drawPreview(Canvas canvas) {
+		Graphics g = canvas.getGraphics();
+		int gridLength = layer.get(0)[0].length;
+		g.setColor(new Color(238, 238, 238));
+		g.drawRect(0, 0, canvas.getWidth(), canvas.getHeight());
+
+		for(int i=0; i<=numberOfLayers; i++) {
+			for(int j=0; j<20; j++) {
+				Image imageLayer = paintLayer(canvas, i);
+				
+				AffineTransform identity = new AffineTransform();
+				AffineTransform trans = new AffineTransform();
+				trans.setTransform(identity);
+				trans.scale(1, 0.5);
+				trans.translate(getWidth()/2-(previewPixelSize*gridLength/2), getHeight()*4/3-(previewPixelSize*gridLength)-i*20-j);
+				trans.rotate(Math.toRadians(previewAngle), previewPixelSize*gridLength/2, previewPixelSize*gridLength/2);
+				Graphics2D g2 = (Graphics2D) g;
+				g2.drawImage(imageLayer, trans, null);
+			}
+		}
+	}
+	
+	public BufferedImage paintLayer(Canvas canvas, int layerNumber) {
+		BufferedImage imageLayer = new BufferedImage(480, 480, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D g2Layer;
+		g2Layer = (Graphics2D) imageLayer.getGraphics();
+		g2Layer.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+		int gridLength = layer.get(0)[0].length;
+		for(int i=0; i<gridLength; i++)
+			for(int j=0; j<gridLength; j++) {
+				if(layer.get(layerNumber)[i][j] != null)
+					g2Layer.setPaint(layer.get(layerNumber)[i][j]);
+				else
+					g2Layer.setPaint(new Color(0, 0, 0, 0));
+				g2Layer.fillRect(i*12, j*12, 12, 12);
+			}
+
+		
+		return imageLayer;
+	}
+	
+	
+	
 	
 	public void drawPixel(MyCanvas canvas, Graphics g, MouseEvent e) {
 		int unit = canvas.getUnitSize();
 		int x = e.getX()/unit;
 		int y = e.getY()/unit;
-		if(x >= 0 && x < canvas.getCanvasSize() && y >= 0 && y < canvas.getCanvasSize())
+		if(x >= 0 && x < canvas.getGridSize() && y >= 0 && y < canvas.getGridSize())
 		if(tool == tools.pencil && layer.get(currentLayer)[x][y] != color) {
 			if(g.getColor() != color) g.setColor(color);
 			g.fillRect(x*unit, y*unit, unit, unit);
@@ -401,7 +487,7 @@ public class DrawArea2 extends JFrame {
 	}
 
 	private void canvasUpdate(MyCanvas canvas, Graphics g) {
-		int canvasSize = canvas.getCanvasSize();
+		int canvasSize = canvas.getGridSize();
 		int unit = canvas.getUnitSize();
 		for(int i=0; i<canvasSize; i++)
 			for(int j=0; j<canvasSize; j++) {
@@ -437,7 +523,7 @@ public class DrawArea2 extends JFrame {
 	
 	public void addLayer(MyCanvas canvas) {
 		Graphics g = canvas.getGraphics();
-		layer.add(currentLayer+1, new Color[canvas.getCanvasSize()][canvas.getCanvasSize()]);
+		layer.add(currentLayer+1, new Color[canvas.getGridSize()][canvas.getGridSize()]);
 		currentLayer++;
 		numberOfLayers++;
 		DefaultTableModel tableModel = (DefaultTableModel)table.getModel();
