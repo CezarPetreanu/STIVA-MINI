@@ -6,29 +6,37 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import java.awt.BorderLayout;
-import javax.swing.JToolBar;
+import java.awt.Canvas;
+
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JMenu;
 import javax.swing.JTabbedPane;
-import java.awt.FlowLayout;
+import java.awt.Graphics;
+import java.awt.Image;
+
 import javax.swing.JButton;
 import javax.swing.JLabel;
-import java.awt.Button;
-import java.awt.Label;
-import javax.swing.JScrollPane;
 import javax.swing.JList;
-import com.jgoodies.forms.layout.FormLayout;
-import com.jgoodies.forms.layout.ColumnSpec;
-import com.jgoodies.forms.layout.FormSpecs;
-import com.jgoodies.forms.layout.RowSpec;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.List;
 import java.awt.event.ActionEvent;
 import javax.swing.BoxLayout;
+import java.awt.Color;
+import java.awt.Panel;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 
 public class DrawArea2 extends JFrame {
 
+	private Color color;
+	private int currentLayer;
+	private int numberOfLayers;
 	private JPanel contentPane;
+	private tools tool;
+	private List <Color[][]> layer = new ArrayList<>();
 
 	/**
 	 * Launch the application.
@@ -52,7 +60,7 @@ public class DrawArea2 extends JFrame {
 	public DrawArea2() {
 		setTitle("STIVA MINI");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 617, 525);
+		setBounds(100, 100, 746, 617);
 		
 		JMenuBar menuBar = new JMenuBar();
 		setJMenuBar(menuBar);
@@ -151,17 +159,53 @@ public class DrawArea2 extends JFrame {
 		JButton btnDrawPencil = new JButton("Pencil ");
 		panel_7.add(btnDrawPencil);
 		
-		JButton btnNewButton_1 = new JButton("   Fill   ");
-		panel_7.add(btnNewButton_1);
+		JButton btnDrawFill = new JButton("   Fill   ");
+		panel_7.add(btnDrawFill);
 		
-		JButton btnNewButton_2 = new JButton("Eraser");
-		panel_7.add(btnNewButton_2);
+		JButton btnDrawEraser = new JButton("Eraser");
+		panel_7.add(btnDrawEraser);
 		
 		JLabel lblColor = new JLabel("Color");
 		panel_7.add(lblColor);
 		
-		JButton btnNewButton = new JButton(" ");
-		panel_7.add(btnNewButton);
+		JButton btnColorPicker = new JButton("          ");
+		btnColorPicker.setFocusable(false);
+		btnColorPicker.setBackground(new Color(0, 0, 0));
+		panel_7.add(btnColorPicker);
+		
+		Panel panel_8 = new Panel();
+		panelDraw.add(panel_8, BorderLayout.CENTER);
+		panel_8.setLayout(null);
+		
+		MyCanvas canvas = new MyCanvas(16) {
+			public void paint(Graphics g)
+            {
+				drawBackground(g);
+            }
+		};
+		canvas.addMouseMotionListener(new MouseMotionAdapter() {
+			@Override
+			public void mouseDragged(MouseEvent e) {
+				Graphics g = canvas.getGraphics();
+				int unit = canvas.getUnitSize();
+				int x = e.getX()/unit;
+				int y = e.getY()/unit;
+				g.fillRect(x*unit, y*unit, unit, unit);
+			}
+		});
+		canvas.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent e) {
+				Graphics g = canvas.getGraphics();
+				int unit = canvas.getUnitSize();
+				int x = e.getX()/unit;
+				int y = e.getY()/unit;
+				g.fillRect(x*unit, y*unit, unit, unit);
+			}
+		});
+		canvas.setBackground(new Color(255, 255, 255));
+		canvas.setBounds(10, 10, 480, 480);
+		panel_8.add(canvas);
 		
 		JPanel panelPreview = new JPanel();
 		tabbedPane.addTab("Preview", null, panelPreview, null);
@@ -190,5 +234,4 @@ public class DrawArea2 extends JFrame {
 		});
 		panel_1.add(btnPreviewRight);
 	}
-
 }
