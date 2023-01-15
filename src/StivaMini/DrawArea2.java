@@ -13,6 +13,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JMenu;
 import javax.swing.JTabbedPane;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Image;
 
 import javax.swing.JButton;
@@ -389,6 +390,12 @@ public class DrawArea2 extends JFrame {
 			else
 				g.setColor(Color.gray);
 			g.fillRect(x*unit, y*unit, unit, unit);
+			if(currentLayer>0 && layer.get(currentLayer-1)[x][y] != null)
+			{
+				Color prevColor = layer.get(currentLayer-1)[x][y];
+				g.setColor(new Color(prevColor.getRed(), prevColor.getGreen(), prevColor.getBlue(), 100));
+				g.fillRect(x*unit, y*unit, unit, unit);
+			}
 			layer.get(currentLayer)[x][y] = null;
 		}
 	}
@@ -403,7 +410,12 @@ public class DrawArea2 extends JFrame {
 				else
 					g.setColor(Color.gray);
 				g.fillRect(i*unit, j*unit, unit, unit);
-				//drawOnionSkin(i, j, g);
+				if(currentLayer>0 && layer.get(currentLayer-1)[i][j] != null)
+				{
+					Color prevColor = layer.get(currentLayer-1)[i][j];
+					g.setColor(new Color(prevColor.getRed(), prevColor.getGreen(), prevColor.getBlue(), 100));
+					g.fillRect(i*unit, j*unit, unit, unit);
+				}
 				if(layer.get(currentLayer)[i][j] != null) {
 					g.setColor(layer.get(currentLayer)[i][j]);
 					g.fillRect(i*unit, j*unit, unit, unit);
