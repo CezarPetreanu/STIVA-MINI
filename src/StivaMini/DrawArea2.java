@@ -21,6 +21,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.awt.event.ActionEvent;
 import javax.swing.BoxLayout;
@@ -31,7 +32,10 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import javax.swing.AbstractListModel;
 import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
 import javax.swing.table.DefaultTableModel;
+import java.awt.event.HierarchyListener;
+import java.awt.event.HierarchyEvent;
 
 public class DrawArea2 extends JFrame {
 
@@ -71,6 +75,14 @@ public class DrawArea2 extends JFrame {
 		setTitle("STIVA MINI");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 746, 617);
+		
+		MyCanvas canvas = new MyCanvas(16) {
+			public void paint(Graphics g)
+            {
+				drawBackground(g);
+            }
+		};
+		layer.add(new Color[canvas.getCanvasSize()][canvas.getCanvasSize()]);
 		
 		JMenuBar menuBar = new JMenuBar();
 		setJMenuBar(menuBar);
@@ -135,18 +147,78 @@ public class DrawArea2 extends JFrame {
 		panel_3.add(panel_4, BorderLayout.NORTH);
 		
 		JButton btnLayerMoveUp = new JButton("\u2B9D");
+		JButton btnLayerMoveDown = new JButton("\u2B9F");
+		
+		btnLayerMoveUp.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				btnLayerMoveDown.setEnabled(true);
+				int index = table.getSelectedRow();
+				String text1 = table.getModel().getValueAt(index, 0).toString();
+				String text2 = table.getModel().getValueAt(index-1, 0).toString();
+				table.getModel().setValueAt(text2, index, 0);
+				table.getModel().setValueAt(text1, index-1, 0);
+				table.setRowSelectionInterval(index-1, index-1);
+				Collections.swap(layer, numberOfLayers-index, numberOfLayers-index+1);
+				if(index-1 == 0)
+					btnLayerMoveUp.setEnabled(false);
+				currentLayer++;
+				canvasUpdate(canvas, canvas.getGraphics());
+			}
+		});
+		btnLayerMoveUp.setEnabled(false);
 		panel_4.add(btnLayerMoveUp);
 		
-		JButton btnLayerMoveDown = new JButton("\u2B9F");
+		
+		btnLayerMoveDown.setEnabled(false);
+		btnLayerMoveDown.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				btnLayerMoveUp.setEnabled(true);
+				int index = table.getSelectedRow();
+				String text1 = table.getModel().getValueAt(index, 0).toString();
+				String text2 = table.getModel().getValueAt(index+1, 0).toString();
+				table.getModel().setValueAt(text2, index, 0);
+				table.getModel().setValueAt(text1, index+1, 0);
+				table.setRowSelectionInterval(index+1, index+1);
+				Collections.swap(layer, numberOfLayers-index, numberOfLayers-index-1);
+				if(index+1 == table.getRowCount()-1)
+					btnLayerMoveDown.setEnabled(false);
+				currentLayer--;
+				canvasUpdate(canvas, canvas.getGraphics());
+			}
+		});
 		panel_4.add(btnLayerMoveDown);
 		
 		JPanel panel_5 = new JPanel();
 		panel_3.add(panel_5, BorderLayout.SOUTH);
 		
 		JButton btnLayerAdd = new JButton("Add");
+		btnLayerAdd.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				addLayer(canvas);
+				int index = table.getSelectedRow();
+				btnLayerMoveUp.setEnabled(true);
+				btnLayerMoveDown.setEnabled(true);
+				if(index == 0)
+					btnLayerMoveUp.setEnabled(false);
+				if(index == numberOfLayers)
+					btnLayerMoveDown.setEnabled(false);
+			}
+		});
 		panel_5.add(btnLayerAdd);
 		
 		JButton btnLayerDelete = new JButton("Delete");
+		btnLayerDelete.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				deleteLayer(canvas);
+				int index = table.getSelectedRow();
+				btnLayerMoveUp.setEnabled(true);
+				btnLayerMoveDown.setEnabled(true);
+				if(index == 0)
+					btnLayerMoveUp.setEnabled(false);
+				if(index == numberOfLayers)
+					btnLayerMoveDown.setEnabled(false);
+			}
+		});
 		panel_5.add(btnLayerDelete);
 		
 		JLabel lblDrawLayers = new JLabel("Layers");
@@ -168,6 +240,22 @@ public class DrawArea2 extends JFrame {
 				return columnTypes[columnIndex];
 			}
 		});
+		table.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				table.setRowSelectionInterval(table.getSelectedRow(), table.getSelectedRow());
+				int index = table.getSelectedRow();
+				btnLayerMoveUp.setEnabled(true);
+				btnLayerMoveDown.setEnabled(true);
+				if(index == 0)
+					btnLayerMoveUp.setEnabled(false);
+				if(index == numberOfLayers)
+					btnLayerMoveDown.setEnabled(false);
+				currentLayer = numberOfLayers-index;
+				canvasUpdate(canvas, canvas.getGraphics());
+			}
+		});
+		table.setRowSelectionInterval(0, 0);
 		panel_2.add(table, BorderLayout.CENTER);
 		
 		JPanel panel_6 = new JPanel();
@@ -231,13 +319,6 @@ public class DrawArea2 extends JFrame {
 		panelDraw.add(panel_8, BorderLayout.CENTER);
 		panel_8.setLayout(null);
 		
-		MyCanvas canvas = new MyCanvas(16) {
-			public void paint(Graphics g)
-            {
-				drawBackground(g);
-            }
-		};
-		layer.add(new Color[canvas.getCanvasSize()][canvas.getCanvasSize()]);
 		canvas.addMouseMotionListener(new MouseMotionAdapter() {
 			@Override
 			public void mouseDragged(MouseEvent e) {
@@ -289,10 +370,6 @@ public class DrawArea2 extends JFrame {
 		panel_1.add(btnPreviewPlay);
 		
 		JButton btnPreviewRight = new JButton("\u2B9E");
-		btnPreviewRight.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-			}
-		});
 		panel_1.add(btnPreviewRight);
 	}
 	
@@ -344,5 +421,54 @@ public class DrawArea2 extends JFrame {
 			fillColor(x, y+1, seekColor);
 			fillColor(x, y-1, seekColor);
 		}
+	}
+	
+	public void addLayer(MyCanvas canvas) {
+		Graphics g = canvas.getGraphics();
+		layer.add(currentLayer+1, new Color[canvas.getCanvasSize()][canvas.getCanvasSize()]);
+		currentLayer++;
+		numberOfLayers++;
+		DefaultTableModel tableModel = (DefaultTableModel)table.getModel();
+		String data[] = {(String)("Layer "+currentLayer)};
+		tableModel.addRow(data);
+		tableModel.moveRow(tableModel.getRowCount()-1, tableModel.getRowCount()-1, 0);
+		canvasUpdate(canvas, g);
+	}
+	
+	public void deleteLayer(MyCanvas canvas) {
+		if(numberOfLayers > 0) {
+			Graphics g = canvas.getGraphics();
+			layer.remove(currentLayer);
+			if(currentLayer > 0)
+				currentLayer--;
+			numberOfLayers--;
+			DefaultTableModel tableModel = (DefaultTableModel)table.getModel();
+			int currentIndex = table.getSelectedRow();
+			if(currentIndex == table.getRowCount()-1)
+				currentIndex = table.getRowCount()-2;
+			tableModel.removeRow(table.getSelectedRow());
+			table.setRowSelectionInterval(currentIndex, currentIndex);
+			canvasUpdate(canvas, g);
+		}
+	}
+
+	public int getNumberOfLayers() {
+		return numberOfLayers;
+	}
+	public void nextLayer(MyCanvas canvas) {
+		Graphics g = canvas.getGraphics();
+		if(currentLayer < numberOfLayers)
+			currentLayer++;
+		canvasUpdate(canvas, g);
+	}
+	public void prevLayer(MyCanvas canvas) {
+		Graphics g = canvas.getGraphics();
+		if(currentLayer > 0)
+			currentLayer--;
+		canvasUpdate(canvas, g);
+	}
+
+	public int getCurrentLayer() {
+		return currentLayer;
 	}
 }
