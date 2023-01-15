@@ -5,7 +5,7 @@ import java.awt.Color;
 import java.awt.Graphics;
 
 public class MyCanvas extends Canvas{
-	public int size;
+	private int size;
 	
 	public MyCanvas(int size) {
 		this.size = size;
@@ -17,6 +17,10 @@ public class MyCanvas extends Canvas{
 	
 	public int getUnitSize() {
 		return 480/size;
+	}
+	
+	public int getCanvasSize() {
+		return size;
 	}
 	
 	public void drawBackground(Graphics g) {

@@ -16,6 +16,7 @@ import java.awt.Graphics;
 import java.awt.Image;
 
 import javax.swing.JButton;
+import javax.swing.JColorChooser;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import java.awt.event.ActionListener;
@@ -28,6 +29,9 @@ import java.awt.Panel;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
+import javax.swing.AbstractListModel;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
 
 public class DrawArea2 extends JFrame {
 
@@ -37,6 +41,7 @@ public class DrawArea2 extends JFrame {
 	private JPanel contentPane;
 	private tools tool;
 	private List <Color[][]> layer = new ArrayList<>();
+	private JTable table;
 
 	/**
 	 * Launch the application.
@@ -58,6 +63,11 @@ public class DrawArea2 extends JFrame {
 	 * Create the frame.
 	 */
 	public DrawArea2() {
+		color = Color.BLACK;
+		tool = tools.pencil;
+		currentLayer = 0;
+		numberOfLayers = 0;
+		
 		setTitle("STIVA MINI");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 746, 617);
@@ -139,11 +149,26 @@ public class DrawArea2 extends JFrame {
 		JButton btnLayerDelete = new JButton("Delete");
 		panel_5.add(btnLayerDelete);
 		
-		JList list = new JList();
-		panel_2.add(list, BorderLayout.CENTER);
-		
 		JLabel lblDrawLayers = new JLabel("Layers");
 		panel_2.add(lblDrawLayers, BorderLayout.NORTH);
+		
+		table = new JTable();
+		table.setModel(new DefaultTableModel(
+			new Object[][] {
+				{"Layer 0"},
+			},
+			new String[] {
+				"Layers"
+			}
+		) {
+			Class[] columnTypes = new Class[] {
+				String.class
+			};
+			public Class getColumnClass(int columnIndex) {
+				return columnTypes[columnIndex];
+			}
+		});
+		panel_2.add(table, BorderLayout.CENTER);
 		
 		JPanel panel_6 = new JPanel();
 		panelDraw.add(panel_6, BorderLayout.WEST);
@@ -157,18 +182,47 @@ public class DrawArea2 extends JFrame {
 		panel_7.setLayout(new BoxLayout(panel_7, BoxLayout.Y_AXIS));
 		
 		JButton btnDrawPencil = new JButton("Pencil ");
-		panel_7.add(btnDrawPencil);
-		
 		JButton btnDrawFill = new JButton("   Fill   ");
-		panel_7.add(btnDrawFill);
-		
 		JButton btnDrawEraser = new JButton("Eraser");
+		btnDrawPencil.setEnabled(false);
+		btnDrawPencil.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				tool = tools.pencil;
+				btnDrawPencil.setEnabled(false);
+				btnDrawFill.setEnabled(true);
+				btnDrawEraser.setEnabled(true);
+			}
+		});
+		btnDrawFill.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				tool = tools.fill;
+				btnDrawPencil.setEnabled(true);
+				btnDrawFill.setEnabled(false);
+				btnDrawEraser.setEnabled(true);
+			}
+		});
+		btnDrawEraser.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				tool = tools.eraser;
+				btnDrawPencil.setEnabled(true);
+				btnDrawFill.setEnabled(true);
+				btnDrawEraser.setEnabled(false);
+			}
+		});
+		panel_7.add(btnDrawPencil);
+		panel_7.add(btnDrawFill);
 		panel_7.add(btnDrawEraser);
 		
 		JLabel lblColor = new JLabel("Color");
 		panel_7.add(lblColor);
 		
 		JButton btnColorPicker = new JButton("          ");
+		btnColorPicker.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				color = JColorChooser.showDialog(null, "Color picker...", color);
+				btnColorPicker.setBackground(color);
+			}
+		});
 		btnColorPicker.setFocusable(false);
 		btnColorPicker.setBackground(new Color(0, 0, 0));
 		panel_7.add(btnColorPicker);
@@ -183,24 +237,31 @@ public class DrawArea2 extends JFrame {
 				drawBackground(g);
             }
 		};
+		layer.add(new Color[canvas.getCanvasSize()][canvas.getCanvasSize()]);
 		canvas.addMouseMotionListener(new MouseMotionAdapter() {
 			@Override
 			public void mouseDragged(MouseEvent e) {
 				Graphics g = canvas.getGraphics();
-				int unit = canvas.getUnitSize();
-				int x = e.getX()/unit;
-				int y = e.getY()/unit;
-				g.fillRect(x*unit, y*unit, unit, unit);
+				drawPixel(canvas, g, e);
 			}
 		});
 		canvas.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
 				Graphics g = canvas.getGraphics();
-				int unit = canvas.getUnitSize();
-				int x = e.getX()/unit;
-				int y = e.getY()/unit;
-				g.fillRect(x*unit, y*unit, unit, unit);
+				if(tool != tools.fill)
+					drawPixel(canvas, g, e);
+				else
+				{
+					int unit = canvas.getUnitSize();
+					int x = e.getX()/unit;
+					int y = e.getY()/unit;
+					if(x >= 0 && x < canvas.getCanvasSize() && y >= 0 && y < canvas.getCanvasSize() &&
+						tool == tools.fill && layer.get(currentLayer)[x][y] != color) {
+						fillColor(x, y, layer.get(currentLayer)[x][y]);
+						canvasUpdate(canvas, g);
+					}
+				}
 			}
 		});
 		canvas.setBackground(new Color(255, 255, 255));
@@ -233,5 +294,55 @@ public class DrawArea2 extends JFrame {
 			}
 		});
 		panel_1.add(btnPreviewRight);
+	}
+	
+	public void drawPixel(MyCanvas canvas, Graphics g, MouseEvent e) {
+		int unit = canvas.getUnitSize();
+		int x = e.getX()/unit;
+		int y = e.getY()/unit;
+		if(x >= 0 && x < canvas.getCanvasSize() && y >= 0 && y < canvas.getCanvasSize())
+		if(tool == tools.pencil && layer.get(currentLayer)[x][y] != color) {
+			if(g.getColor() != color) g.setColor(color);
+			g.fillRect(x*unit, y*unit, unit, unit);
+			layer.get(currentLayer)[x][y] = color;
+		}
+		else if(tool == tools.eraser && layer.get(currentLayer)[x][y] != null) {
+			if((x+y)%2 == 0)
+				g.setColor(Color.lightGray);
+			else
+				g.setColor(Color.gray);
+			g.fillRect(x*unit, y*unit, unit, unit);
+			layer.get(currentLayer)[x][y] = null;
+		}
+	}
+
+	private void canvasUpdate(MyCanvas canvas, Graphics g) {
+		int canvasSize = canvas.getCanvasSize();
+		int unit = canvas.getUnitSize();
+		for(int i=0; i<canvasSize; i++)
+			for(int j=0; j<canvasSize; j++) {
+				if((i+j)%2 == 0)
+					g.setColor(Color.lightGray);
+				else
+					g.setColor(Color.gray);
+				g.fillRect(i*unit, j*unit, unit, unit);
+				//drawOnionSkin(i, j, g);
+				if(layer.get(currentLayer)[i][j] != null) {
+					g.setColor(layer.get(currentLayer)[i][j]);
+					g.fillRect(i*unit, j*unit, unit, unit);
+				}
+			}
+		g.setColor(color);
+	}
+
+	private void fillColor(int x, int y, Color seekColor) {
+		int canvasSize = layer.get(currentLayer)[0].length;
+		if(x >= 0 && y >= 0 && x < canvasSize && y < canvasSize && layer.get(currentLayer)[x][y] == seekColor) {
+			layer.get(currentLayer)[x][y] = color;
+			fillColor(x+1, y, seekColor);
+			fillColor(x-1, y, seekColor);
+			fillColor(x, y+1, seekColor);
+			fillColor(x, y-1, seekColor);
+		}
 	}
 }
