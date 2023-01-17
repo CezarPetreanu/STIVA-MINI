@@ -10,6 +10,7 @@ import java.awt.Canvas;
 
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JMenu;
 import javax.swing.JTabbedPane;
 import java.awt.Graphics;
@@ -18,20 +19,26 @@ import java.awt.Image;
 
 import javax.swing.JButton;
 import javax.swing.JColorChooser;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.awt.event.ActionEvent;
 import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+
 import java.awt.Color;
 import java.awt.Panel;
 import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 
@@ -53,6 +60,11 @@ public class DrawArea extends JFrame {
 	private JTable table;
 	private int previewAngle;
 	private int previewPixelSize;
+	private int newSize;
+	
+	private boolean modified = false;
+	
+	
 	/**
 	 * Launch the application.
 	 */
@@ -79,7 +91,7 @@ public class DrawArea extends JFrame {
 		numberOfLayers = 0;
 		
 		setTitle("STIVA MINI");
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		setBounds(100, 100, 746, 617);
 		
 		
@@ -87,7 +99,7 @@ public class DrawArea extends JFrame {
 		// ---------------------- DRAW MODE ----------------------
 		
 		
-		MyCanvas canvas = new MyCanvas() {
+		MyCanvas canvas = new MyCanvas(480, 15) {
 			public void paint(Graphics g)
             {
 				canvasUpdate(this, this.getGraphics());
@@ -95,14 +107,88 @@ public class DrawArea extends JFrame {
 		};
 		layer.add(new Color[canvas.getGridSize()][canvas.getGridSize()]);
 		
+		table = new JTable();
+		table.setModel(new DefaultTableModel(
+			new Object[][] {
+				{"Layer 0"},
+			},
+			new String[] {
+				"Layers"
+			}
+		) {
+			Class[] columnTypes = new Class[] {
+				String.class
+			};
+			public Class getColumnClass(int columnIndex) {
+				return columnTypes[columnIndex];
+			}
+		});
+		
 		JMenuBar menuBar = new JMenuBar();
 		setJMenuBar(menuBar);
 		
 		JMenu mnFile = new JMenu("File");
 		menuBar.add(mnFile);
 		
-		JMenuItem mntmNew = new JMenuItem("New...");
-		mnFile.add(mntmNew);
+		JMenu mnNewMenu = new JMenu("New...");
+		mnFile.add(mnNewMenu);
+		
+		JMenuItem mntmNewMenuItem = new JMenuItem("8x8");
+		mntmNewMenuItem.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if(modified == true) {
+					String[] options = {"Save", "Don't Save", "Cancel"};
+					int response = JOptionPane.showOptionDialog(null, "Do you want to save changes??",
+			                "Unsaved changes",
+			                JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
+					if(response == 1)
+					{
+						resetCanvas(canvas, 8);
+					}
+				}
+				else
+					resetCanvas(canvas, 8);
+			}
+		});
+		mnNewMenu.add(mntmNewMenuItem);
+		
+		JMenuItem mntmNewMenuItem_1 = new JMenuItem("16x16");
+		mntmNewMenuItem_1.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if(modified == true) {
+					String[] options = {"Save", "Don't Save", "Cancel"};
+					int response = JOptionPane.showOptionDialog(null, "Do you want to save changes??",
+			                "Unsaved changes",
+			                JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
+					if(response == 1)
+					{
+						resetCanvas(canvas, 16);
+					}
+				}
+				else
+					resetCanvas(canvas, 16);
+			}
+		});
+		mnNewMenu.add(mntmNewMenuItem_1);
+		
+		JMenuItem mntmNewMenuItem_2 = new JMenuItem("32x32");
+		mntmNewMenuItem_2.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if(modified == true) {
+					String[] options = {"Save", "Don't Save", "Cancel"};
+					int response = JOptionPane.showOptionDialog(null, "Do you want to save changes??",
+			                "Unsaved changes",
+			                JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
+					if(response == 1)
+					{
+						resetCanvas(canvas, 32);
+					}
+				}
+				else
+					resetCanvas(canvas, 32);
+			}
+		});
+		mnNewMenu.add(mntmNewMenuItem_2);
 		
 		JMenuItem mntmOpen = new JMenuItem("Open...");
 		mnFile.add(mntmOpen);
@@ -235,22 +321,6 @@ public class DrawArea extends JFrame {
 		JLabel lblDrawLayers = new JLabel("Layers");
 		panel_2.add(lblDrawLayers, BorderLayout.NORTH);
 		
-		table = new JTable();
-		table.setModel(new DefaultTableModel(
-			new Object[][] {
-				{"Layer 0"},
-			},
-			new String[] {
-				"Layers"
-			}
-		) {
-			Class[] columnTypes = new Class[] {
-				String.class
-			};
-			public Class getColumnClass(int columnIndex) {
-				return columnTypes[columnIndex];
-			}
-		});
 		table.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -337,6 +407,7 @@ public class DrawArea extends JFrame {
 			public void mouseDragged(MouseEvent e) {
 				Graphics g = canvas.getGraphics();
 				drawPixel(canvas, g, e);
+				modified = true;
 			}
 		});
 		canvas.addMouseListener(new MouseAdapter() {
@@ -354,6 +425,7 @@ public class DrawArea extends JFrame {
 						tool == tools.fill && layer.get(currentLayer)[x][y] != color) {
 						fillColor(x, y, layer.get(currentLayer)[x][y]);
 						canvasUpdate(canvas, g);
+						modified = true;
 					}
 				}
 			}
@@ -414,6 +486,21 @@ public class DrawArea extends JFrame {
 				canvasPreview.getGraphics().clearRect(0, 0, getWidth(), getHeight());
 				previewAngle-=10;
 				drawPreview(canvasPreview);
+			}
+		});
+		
+		addWindowListener(new WindowAdapter() {
+			public void windowClosing(WindowEvent e) {
+				if(modified == true) {
+					String[] options = {"Save", "Don't Save", "Cancel"};
+					int response = JOptionPane.showOptionDialog(null, "Do you want to save changes??",
+			                "Unsaved changes",
+			                JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
+					if(response == 1)
+						dispose();
+				}
+				else
+					dispose();
 			}
 		});
 	}
@@ -551,6 +638,19 @@ public class DrawArea extends JFrame {
 			canvasUpdate(canvas, g);
 		}
 	}
+	
+	public void resetCanvas(MyCanvas canvas, int newSize) {
+		canvas.reset(480, newSize);
+		int n = numberOfLayers;
+		for(int i=0; i<n; i++)
+			deleteLayer(canvas);
+		numberOfLayers = 0;
+		currentLayer = 0;
+		layer.remove(0);
+		layer.add(new Color[newSize][newSize]);
+		canvas.update(canvas.getGraphics());
+		table.getModel().setValueAt("Layer 0",0,0);
+	}
 
 	public int getNumberOfLayers() {
 		return numberOfLayers;
@@ -570,5 +670,9 @@ public class DrawArea extends JFrame {
 
 	public int getCurrentLayer() {
 		return currentLayer;
+	}
+	
+	public boolean isModified() {
+		return modified;
 	}
 }

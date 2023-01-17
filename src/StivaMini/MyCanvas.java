@@ -41,4 +41,10 @@ public class MyCanvas extends Canvas{
 			}
 		}
 	}
+
+	public void reset(int size, int gridSize) {
+		this.size = size;
+		this.gridSize = gridSize;
+		
+	}
 }
