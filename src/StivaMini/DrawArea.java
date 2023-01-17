@@ -20,6 +20,7 @@ import java.awt.Image;
 import javax.swing.JButton;
 import javax.swing.JColorChooser;
 import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import java.awt.event.ActionListener;
@@ -41,10 +42,19 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 
 import javax.swing.AbstractListModel;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.HierarchyListener;
 import java.awt.event.HierarchyEvent;
@@ -61,7 +71,9 @@ public class DrawArea extends JFrame {
 	private int previewAngle;
 	private int previewPixelSize;
 	private int newSize;
+	private String path;
 	
+	private boolean newProject = true;
 	private boolean modified = false;
 	
 	
@@ -138,16 +150,29 @@ public class DrawArea extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				if(modified == true) {
 					String[] options = {"Save", "Don't Save", "Cancel"};
-					int response = JOptionPane.showOptionDialog(null, "Do you want to save changes??",
+					int response = JOptionPane.showOptionDialog(null, "Do you want to save changes?",
 			                "Unsaved changes",
 			                JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
-					if(response == 1)
-					{
+					if(response == 1) {
 						resetCanvas(canvas, 8);
+						modified = false;
+						newProject = true;
+					}
+					if(response == 0) {
+						if(newProject == true)
+							saveas();
+						else
+							save();
+						resetCanvas(canvas, 8);
+						modified = false;
+						newProject = true;
 					}
 				}
-				else
+				else {
 					resetCanvas(canvas, 8);
+					modified = false;
+					newProject = true;
+				}
 			}
 		});
 		mnNewMenu.add(mntmNewMenuItem);
@@ -157,16 +182,29 @@ public class DrawArea extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				if(modified == true) {
 					String[] options = {"Save", "Don't Save", "Cancel"};
-					int response = JOptionPane.showOptionDialog(null, "Do you want to save changes??",
+					int response = JOptionPane.showOptionDialog(null, "Do you want to save changes?",
 			                "Unsaved changes",
 			                JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
-					if(response == 1)
-					{
+					if(response == 1) {
 						resetCanvas(canvas, 16);
+						modified = false;
+						newProject = true;
+					}
+					if(response == 0) {
+						if(newProject == true)
+							saveas();
+						else
+							save();
+						resetCanvas(canvas, 16);
+						modified = false;
+						newProject = true;
 					}
 				}
-				else
+				else {
 					resetCanvas(canvas, 16);
+					modified = false;
+					newProject = true;
+				}
 			}
 		});
 		mnNewMenu.add(mntmNewMenuItem_1);
@@ -176,30 +214,83 @@ public class DrawArea extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				if(modified == true) {
 					String[] options = {"Save", "Don't Save", "Cancel"};
-					int response = JOptionPane.showOptionDialog(null, "Do you want to save changes??",
+					int response = JOptionPane.showOptionDialog(null, "Do you want to save changes?",
 			                "Unsaved changes",
 			                JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
-					if(response == 1)
-					{
+					if(response == 1) {
 						resetCanvas(canvas, 32);
+						modified = false;
+						newProject = true;
+					}
+					if(response == 0) {
+						if(newProject == true)
+							saveas();
+						else
+							save();
+						resetCanvas(canvas, 32);
+						modified = false;
+						newProject = true;
 					}
 				}
-				else
+				else {
 					resetCanvas(canvas, 32);
+					modified = false;
+					newProject = true;
+				}
 			}
 		});
 		mnNewMenu.add(mntmNewMenuItem_2);
 		
+		JButton btnLayerMoveUp = new JButton("\u2B9D");
+		JButton btnLayerMoveDown = new JButton("\u2B9F");
+		btnLayerMoveUp.setEnabled(false);
+		btnLayerMoveDown.setEnabled(false);
+		
 		JMenuItem mntmOpen = new JMenuItem("Open...");
+		mntmOpen.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				JFileChooser fileChooser = new JFileChooser();
+				fileChooser.setDialogTitle("Specify a file to save");   
+				 
+				int userSelection = fileChooser.showOpenDialog(new JFrame());
+				 
+				if (userSelection == JFileChooser.APPROVE_OPTION) {
+				    File fileToOpen = fileChooser.getSelectedFile();
+				    try {
+						readFile(fileToOpen, canvas, table);
+						invalidate();
+						validate();
+						repaint();
+						canvas.reset(480, layer.get(0)[0].length);
+						currentLayer = 0;
+						table.setRowSelectionInterval(numberOfLayers, numberOfLayers);
+						canvasUpdate(canvas, canvas.getGraphics());
+						btnLayerMoveDown.setEnabled(false);
+					} catch (ClassNotFoundException | IOException e1) {
+						e1.printStackTrace();
+					}
+				}
+			}
+		});
 		mnFile.add(mntmOpen);
 		
-		JMenu mnOpenRecent = new JMenu("Open Recent");
-		mnFile.add(mnOpenRecent);
-		
 		JMenuItem mntmSave = new JMenuItem("Save");
+		mntmSave.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if(newProject == true)
+					saveas();
+				else
+					save();
+			}
+		});
 		mnFile.add(mntmSave);
 		
 		JMenuItem mntmSaveAs = new JMenuItem("Save As...");
+		mntmSaveAs.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				saveas();
+			}
+		});
 		mnFile.add(mntmSaveAs);
 		
 		JMenuItem mntmExport = new JMenuItem("Export...");
@@ -243,9 +334,6 @@ public class DrawArea extends JFrame {
 		JPanel panel_4 = new JPanel();
 		panel_3.add(panel_4, BorderLayout.NORTH);
 		
-		JButton btnLayerMoveUp = new JButton("\u2B9D");
-		JButton btnLayerMoveDown = new JButton("\u2B9F");
-		
 		btnLayerMoveUp.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				btnLayerMoveDown.setEnabled(true);
@@ -262,11 +350,11 @@ public class DrawArea extends JFrame {
 				canvasUpdate(canvas, canvas.getGraphics());
 			}
 		});
-		btnLayerMoveUp.setEnabled(false);
+		
 		panel_4.add(btnLayerMoveUp);
 		
 		
-		btnLayerMoveDown.setEnabled(false);
+		
 		btnLayerMoveDown.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				btnLayerMoveUp.setEnabled(true);
@@ -493,14 +581,21 @@ public class DrawArea extends JFrame {
 			public void windowClosing(WindowEvent e) {
 				if(modified == true) {
 					String[] options = {"Save", "Don't Save", "Cancel"};
-					int response = JOptionPane.showOptionDialog(null, "Do you want to save changes??",
+					int response = JOptionPane.showOptionDialog(null, "Do you want to save changes?",
 			                "Unsaved changes",
 			                JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
 					if(response == 1)
-						dispose();
+						System.exit(0);
+					if(response == 0) {
+						if(newProject == true)
+							saveas();
+						else
+							save();
+						System.exit(0);
+					}
 				}
 				else
-					dispose();
+					System.exit(0);
 			}
 		});
 	}
@@ -545,8 +640,6 @@ public class DrawArea extends JFrame {
 		
 		return imageLayer;
 	}
-	
-	
 	
 	
 	public void drawPixel(MyCanvas canvas, Graphics g, MouseEvent e) {
@@ -651,7 +744,65 @@ public class DrawArea extends JFrame {
 		canvas.update(canvas.getGraphics());
 		table.getModel().setValueAt("Layer 0",0,0);
 	}
+	
+	public void writeFile(String filepath, JTable table) {
+		 
+        try {
+ 
+            FileOutputStream fileOut = new FileOutputStream(filepath);
+            ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
+            DefaultTableModel model = (DefaultTableModel)table.getModel();
+            objectOut.writeObject(new Project(new ArrayList<Color[][]>(layer), newProject, modified, currentLayer, numberOfLayers, model, path));
+            objectOut.close();
+ 
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+	
+	public void readFile(File file, MyCanvas canvas, JTable table) throws IOException, ClassNotFoundException {
+        Project result = null;
 
+        try {
+	        FileInputStream fis = new FileInputStream(file);
+	        ObjectInputStream ois = new ObjectInputStream(fis);
+	        result = (Project) ois.readObject();
+	        layer = result.getLayer();
+	        newProject = result.isNewProject();
+	        modified = result.isModified();
+	        currentLayer = result.getCurrentLayer();
+	        numberOfLayers = result.getNumberOfLayers();
+	        path = result.getPath();
+	        table.setModel(result.getTableModel());
+
+        } catch(Exception e) {
+        	e.printStackTrace();
+        }
+    }
+
+	public void saveas() {
+		JFileChooser fileChooser = new JFileChooser();
+		fileChooser.setDialogTitle("Specify a file to save");   
+		 
+		int userSelection = fileChooser.showSaveDialog(new JFrame());
+		 
+		if (userSelection == JFileChooser.APPROVE_OPTION) {
+			modified = false;
+		    newProject = false;
+		    File fileToSave = fileChooser.getSelectedFile();
+		    path = fileToSave.getAbsolutePath()+".stv";
+		    modified = false;
+			newProject = false;
+		    writeFile(path, table);
+		}
+	}
+	
+	public void save() {
+		modified = false;
+		newProject = false;
+		writeFile(path, table);
+	}
+	
 	public int getNumberOfLayers() {
 		return numberOfLayers;
 	}

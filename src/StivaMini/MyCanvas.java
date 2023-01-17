@@ -3,8 +3,9 @@ package StivaMini;
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Graphics;
+import java.io.Serializable;
 
-public class MyCanvas extends Canvas{
+public class MyCanvas extends Canvas implements Serializable{
 	private int size;
 	private int gridSize;
 	
