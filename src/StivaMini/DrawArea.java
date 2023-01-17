@@ -50,6 +50,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
+import javax.imageio.ImageIO;
 import javax.swing.AbstractListModel;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
@@ -306,6 +307,16 @@ public class DrawArea extends JFrame {
 		mnFile.add(mntmSaveAs);
 		
 		JMenuItem mntmExport = new JMenuItem("Export...");
+		mntmExport.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					createImage();
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+		});
 		mnFile.add(mntmExport);
 		
 		JMenu mnHelp = new JMenu("Help");
@@ -807,6 +818,29 @@ public class DrawArea extends JFrame {
 			    writeFile(path, table);
 		    }
 		}
+	}
+	
+	public void createImage() throws IOException {
+		System.out.println(numberOfLayers);
+		int width = layer.get(0)[0].length*(numberOfLayers+1);
+		int height = layer.get(0)[0].length;
+		System.out.println(width+" "+height);
+		
+		BufferedImage buff = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D g2 = buff.createGraphics();
+		for(int k=0; k<=numberOfLayers; k++)
+			for(int y=0; y<height; y++)
+				for(int x=0; x<height; x++)
+				{
+					Color c = layer.get(k)[x][y];
+					if(c != null) {
+						g2.setColor(c);
+						g2.fillRect(x+height*k, y, 1, 1);
+					}
+				}
+		g2.dispose();
+		File file = new File("test.png");
+		ImageIO.write(buff, "png", file);
 	}
 	
 	public void save() {
