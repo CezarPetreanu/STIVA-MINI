@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
 
 public class Project implements Serializable{
 	private List <Color[][]> layer = new ArrayList<>();
@@ -13,17 +14,15 @@ public class Project implements Serializable{
 	private boolean modified = false;
 	private int currentLayer;
 	private int numberOfLayers;
-	private DefaultTableModel tableModel;
 	private String path;
 	
 	public Project(List<Color[][]> layer, boolean newProject, boolean modified, int currentLayer, int numberOfLayers,
-			 DefaultTableModel tableModel, String path) {
+			 TableModel tableModel, String path) {
 		this.layer = layer;
 		this.newProject = newProject;
 		this.modified = modified;
 		this.currentLayer = currentLayer;
 		this.numberOfLayers = numberOfLayers;
-		this.tableModel = tableModel;
 		this.path = path;
 	}
 
@@ -67,14 +66,6 @@ public class Project implements Serializable{
 		this.numberOfLayers = numberOfLayers;
 	}
 
-
-	public DefaultTableModel getTableModel() {
-		return tableModel;
-	}
-
-	public void setTableModel(DefaultTableModel tableModel) {
-		this.tableModel = tableModel;
-	}
 	public void setPath(String path) {
 		this.path = path;
 	}

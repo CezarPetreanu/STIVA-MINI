@@ -56,6 +56,8 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
+
 import java.awt.event.HierarchyListener;
 import java.awt.event.HierarchyEvent;
 
@@ -111,7 +113,7 @@ public class DrawArea extends JFrame {
 		// ---------------------- DRAW MODE ----------------------
 		
 		
-		MyCanvas canvas = new MyCanvas(480, 15) {
+		MyCanvas canvas = new MyCanvas(480, 16) {
 			public void paint(Graphics g)
             {
 				canvasUpdate(this, this.getGraphics());
@@ -256,19 +258,27 @@ public class DrawArea extends JFrame {
 				 
 				if (userSelection == JFileChooser.APPROVE_OPTION) {
 				    File fileToOpen = fileChooser.getSelectedFile();
-				    try {
-						readFile(fileToOpen, canvas, table);
-						invalidate();
-						validate();
-						repaint();
-						canvas.reset(480, layer.get(0)[0].length);
-						currentLayer = 0;
-						table.setRowSelectionInterval(numberOfLayers, numberOfLayers);
-						canvasUpdate(canvas, canvas.getGraphics());
-						btnLayerMoveDown.setEnabled(false);
-					} catch (ClassNotFoundException | IOException e1) {
-						e1.printStackTrace();
-					}
+				    if(fileToOpen.toString().substring(fileToOpen.toString().length() - 4).equals(".stv")) {
+					    try {
+							readFile(fileToOpen, canvas);
+							invalidate();
+							validate();
+							repaint();
+							canvas.reset(480, layer.get(0)[0].length);
+							currentLayer = 0;
+							DefaultTableModel tableModel = (DefaultTableModel)table.getModel();
+							tableModel.setRowCount(0);
+							for(int i=numberOfLayers; i>=0; i--) {
+								String data[] = {(String)("Layer "+i)};
+								tableModel.addRow(data);
+							}
+							table.setRowSelectionInterval(numberOfLayers, numberOfLayers);
+							canvasUpdate(canvas, canvas.getGraphics());
+							btnLayerMoveDown.setEnabled(false);
+						} catch (ClassNotFoundException | IOException e1) {
+							e1.printStackTrace();
+						}
+				    }
 				}
 			}
 		});
@@ -277,10 +287,12 @@ public class DrawArea extends JFrame {
 		JMenuItem mntmSave = new JMenuItem("Save");
 		mntmSave.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if(newProject == true)
-					saveas();
-				else
-					save();
+				if(modified == true) {
+					if(newProject == true)
+						saveas();
+					else
+						save();
+				}
 			}
 		});
 		mnFile.add(mntmSave);
@@ -319,9 +331,6 @@ public class DrawArea extends JFrame {
 		JPanel panelDraw = new JPanel();
 		tabbedPane.addTab("Draw", null, panelDraw, null);
 		panelDraw.setLayout(new BorderLayout(0, 0));
-		
-		JLabel lblDrawMessage = new JLabel("...");
-		panelDraw.add(lblDrawMessage, BorderLayout.SOUTH);
 		
 		JPanel panel_2 = new JPanel();
 		panelDraw.add(panel_2, BorderLayout.EAST);
@@ -733,10 +742,10 @@ public class DrawArea extends JFrame {
 	}
 	
 	public void resetCanvas(MyCanvas canvas, int newSize) {
-		canvas.reset(480, newSize);
 		int n = numberOfLayers;
 		for(int i=0; i<n; i++)
 			deleteLayer(canvas);
+		canvas.reset(480, newSize);
 		numberOfLayers = 0;
 		currentLayer = 0;
 		layer.remove(0);
@@ -751,7 +760,7 @@ public class DrawArea extends JFrame {
  
             FileOutputStream fileOut = new FileOutputStream(filepath);
             ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
-            DefaultTableModel model = (DefaultTableModel)table.getModel();
+            TableModel model = (TableModel)table.getModel();
             objectOut.writeObject(new Project(new ArrayList<Color[][]>(layer), newProject, modified, currentLayer, numberOfLayers, model, path));
             objectOut.close();
  
@@ -760,7 +769,7 @@ public class DrawArea extends JFrame {
         }
     }
 	
-	public void readFile(File file, MyCanvas canvas, JTable table) throws IOException, ClassNotFoundException {
+	public void readFile(File file, MyCanvas canvas) throws IOException, ClassNotFoundException {
         Project result = null;
 
         try {
@@ -773,7 +782,6 @@ public class DrawArea extends JFrame {
 	        currentLayer = result.getCurrentLayer();
 	        numberOfLayers = result.getNumberOfLayers();
 	        path = result.getPath();
-	        table.setModel(result.getTableModel());
 
         } catch(Exception e) {
         	e.printStackTrace();
@@ -790,10 +798,14 @@ public class DrawArea extends JFrame {
 			modified = false;
 		    newProject = false;
 		    File fileToSave = fileChooser.getSelectedFile();
-		    path = fileToSave.getAbsolutePath()+".stv";
-		    modified = false;
-			newProject = false;
-		    writeFile(path, table);
+		    if(fileToSave.getAbsolutePath()+".stv" == path)
+		    	save();
+		    else {
+			    path = fileToSave.getAbsolutePath()+".stv";
+			    modified = false;
+				newProject = false;
+			    writeFile(path, table);
+		    }
 		}
 	}
 	
