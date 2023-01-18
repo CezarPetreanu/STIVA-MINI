@@ -49,6 +49,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.nio.file.Path;
 
 import javax.imageio.ImageIO;
 import javax.swing.AbstractListModel;
@@ -322,8 +323,34 @@ public class DrawArea extends JFrame {
 		JMenu mnHelp = new JMenu("Help");
 		menuBar.add(mnHelp);
 		
-		JMenuItem mntmTutorial = new JMenuItem("Tutorial");
-		mnHelp.add(mntmTutorial);
+		JMenuItem mntmDemo = new JMenuItem("Demo");
+		mntmDemo.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				File fileToOpen = new File("src/tree.stv");
+			    if(fileToOpen.toString().substring(fileToOpen.toString().length() - 4).equals(".stv")) {
+				    try {
+						readFile(fileToOpen, canvas);
+						invalidate();
+						validate();
+						repaint();
+						canvas.reset(480, layer.get(0)[0].length);
+						currentLayer = 0;
+						DefaultTableModel tableModel = (DefaultTableModel)table.getModel();
+						tableModel.setRowCount(0);
+						for(int i=numberOfLayers; i>=0; i--) {
+							String data[] = {(String)("Layer "+i)};
+							tableModel.addRow(data);
+						}
+						table.setRowSelectionInterval(numberOfLayers, numberOfLayers);
+						canvasUpdate(canvas, canvas.getGraphics());
+						btnLayerMoveDown.setEnabled(false);
+					} catch (ClassNotFoundException | IOException e1) {
+						e1.printStackTrace();
+					}
+			    }
+			}
+		});
+		mnHelp.add(mntmDemo);
 		
 		JMenuItem mntmDocumentation = new JMenuItem("Documentation");
 		mnHelp.add(mntmDocumentation);
