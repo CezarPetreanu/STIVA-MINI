@@ -33,6 +33,7 @@ import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 
 import java.awt.Color;
+import java.awt.Desktop;
 import java.awt.Panel;
 import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
@@ -74,7 +75,6 @@ public class DrawArea extends JFrame {
 	private JTable table;
 	private int previewAngle;
 	private int previewPixelSize;
-	private int newSize;
 	private String path;
 	
 	private boolean newProject = true;
@@ -352,10 +352,18 @@ public class DrawArea extends JFrame {
 		});
 		mnHelp.add(mntmDemo);
 		
-		JMenuItem mntmDocumentation = new JMenuItem("Documentation");
-		mnHelp.add(mntmDocumentation);
-		
 		JMenuItem mntmAbout = new JMenuItem("About");
+		mntmAbout.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				Desktop dt = Desktop.getDesktop();
+				File about = new File("src/RAPORT DE IMPLEMENTARE A PROIECTULUI INDIVIDUAL.pdf");
+			    try {
+					dt.open(about);
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
 		mnHelp.add(mntmAbout);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
