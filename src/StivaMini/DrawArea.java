@@ -662,14 +662,14 @@ public class DrawArea extends JFrame {
 		g.drawRect(0, 0, canvas.getWidth(), canvas.getHeight());
 
 		for(int i=0; i<=numberOfLayers; i++) {
-			for(int j=0; j<20; j++) {
+			for(int j=0; j<10; j++) {
 				Image imageLayer = paintLayer(canvas, i);
 				
 				AffineTransform identity = new AffineTransform();
 				AffineTransform trans = new AffineTransform();
 				trans.setTransform(identity);
 				trans.scale(1, 0.5);
-				trans.translate(getWidth()/2-(previewPixelSize*gridLength/2), getHeight()*4/3-(previewPixelSize*gridLength)-i*20-j);
+				trans.translate(getWidth()/2-(previewPixelSize*gridLength/2), getHeight()*4/3-(previewPixelSize*gridLength)-i*20-j*2);
 				trans.rotate(Math.toRadians(previewAngle), previewPixelSize*gridLength/2, previewPixelSize*gridLength/2);
 				Graphics2D g2 = (Graphics2D) g;
 				g2.drawImage(imageLayer, trans, null);
